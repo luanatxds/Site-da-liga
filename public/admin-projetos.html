@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - Gerenciar Projetos</title>
+    <link href="/assets/img/logo-icon.png" rel="icon">
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/assets/css/main.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        table.table {
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: black;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid black !important;
+        }
+
+        /* Sobrescrevendo estilos da tabela Bootstrap */
+        .table>thead>tr>th,
+        .table>tbody>tr>td,
+        .table>tfoot>tr>td {
+            border: 1px solid black !important;
+            color: black !important;
+            background-color: #FFF8F0 !important;
+        }
+
+        .table {
+            border: 1px solid black !important;
+            /* Borda externa */
+            border-collapse: collapse !important;
+            /* Para evitar espaços duplos */
+        }
+
+
+        .table th,
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid black;
+            /* bordas sólidas pretas */
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f4f6f9;
+        }
+
+        .table td button i {
+            transition: transform 0.2s ease;
+        }
+
+        .table td button:hover i {
+            transform: scale(1.2);
+        }
+
+        #search-input {
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            padding: 0.5rem 1rem;
+        }
+
+        .pagination button {
+            min-width: 36px;
+        }
+
+        #search-project {
+            border: 1px solid black;
+        }
+
+        .table td:nth-child(4) > div {
+        max-height: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        }
+
+        td .btn-primary {
+            background-color: transparent;
+            border: none;
+            color: black;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        td .btn-primary:hover,
+        td .btn-primary:active,
+        td .btn-primary:focus {
+            background-color: transparent;
+            color: #5d19af;
+        }
+
+        td .btn-danger {
+            background-color: transparent;
+            border: none;
+            color: #E14530;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        td .btn-danger:hover,
+        td .btn-danger:active {
+            background-color: transparent;
+            color: #b11804;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header d-flex align-items-center sticky-top">
+        <div class="container-xl d-flex justify-content-between">
+            <a href="index.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">Área do Administrador</h1>
+            </a>
+            <nav class="navmenu">
+                <ul>
+                    <li><a href="index.html">Voltar para o site</a></li>
+                    <li><a href="admin-emails.html">E-mails</a></li>
+                    <li><a href="admin-membros.html">Membros</a></li>
+                    <li><a href="admin-projetos.html" class="active">Projetos</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="section">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2>Gerenciar Projetos</h2>
+                    <p>Visualize, edite ou remova projetos cadastrados</p>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <input type="text" id="search-project" class="form-control w-50"
+                        placeholder="Buscar por nome ou tipo...">
+                    <button class="btn btn-success" id="btnAddProject" data-bs-toggle="modal"
+                        data-bs-target="#addProjectModal"><i class="bi bi-plus-circle"></i> Adicionar Projeto</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th class="text-truncate-col">Descrição</th>
+                                <th>Ano</th>
+                                <th>Capa</th>
+                                <th>Fotos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="project-list">
+                            <!-- Conteúdo dinâmico -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Novo Projeto -->
+    <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="add-project-form" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectModalLabel">Adicionar Novo Projeto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="project-name" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="project-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project-type" class="form-label">Tipo</label>
+                        <select id="project-type" class="form-control" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="Projeto">Projeto</option>
+                            <option value="Evento">Evento</option>
+                            <option value="Pesquisa">Pesquisa</option>
+                            <option value="Extensão">Extensão</option>
+                            <!-- Adicione mais opções conforme necessário -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project-description" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="project-description" rows="3" style="resize: none;" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project-year" class="form-label">Ano</label>
+                        <input type="number" class="form-control" id="project-year" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project-image-file" class="form-label">Imagem Capa</label>
+                        <input type="file" id="project-image-file" name="coverImage" accept="image/*" required>
+                        <!-- campo oculto para guardar URL da imagem atual -->
+                        <input type="hidden" id="project-image" name="imageUrl" />
+                    </div>
+                </div>
+                <div class="mb-3 p-3">
+                    <label for="project-extra-images" class="form-label">Imagens Extras</label>
+                    <input type="file" id="project-extra-images" name="extraImages" accept="image/*" multiple>
+                    <!-- campo oculto para guardar URL das imagens extras -->
+                        <input type="hidden" id="project-extra-file" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="modalProjectSubmitBtn">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de exclusão -->
+    <div class="modal fade" id="confirmDeleteProjectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Excluir Projeto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Tem certeza que deseja excluir <strong id="projectToDeleteName"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-danger" id="confirmDeleteProjectBtn">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080">
+        <div id="toastContainer"></div>
+    </div>
+
+    <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/admin-projetos.js"></script>
+
+</body>
+
+</html>

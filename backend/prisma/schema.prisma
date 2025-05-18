@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+}
+
+model Newsletter {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  created_at DateTime @default(now())
+}
+
+model Member {
+  id         Int      @id @default(autoincrement())
+  name       String
+  role       String
+  course     String
+  admission  DateTime
+  linkedin   String
+  imageUrl   String
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String   // nome do projeto
+  type        String   // ex: "Pesquisa", "Extensão", "Desenvolvimento"
+  description String
+  imageUrl    String   // imagem de capa
+  images      ProjectImage[] // relação 1:N com imagens extras
+  year        Int      // Ano do projeto (ex: 2025)
+}
+
+model ProjectImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+}
