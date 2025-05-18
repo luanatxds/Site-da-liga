@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prisma/client');
+const path = require('path');
 
 console.log('publicRoutes carregado');
 
@@ -21,13 +22,37 @@ router.get('/members', async (req, res) => {
 });
 
 // Nova rota para projetos
+
 router.get('/projects', async (req, res) => {
     try {
         const projects = await prisma.project.findMany({
-             orderBy: { id: 'desc' },
-             include: { images: true }  // Inclui as imagens extras de cada projeto 
+            orderBy: { id: 'desc' },
+            include: { images: true }
+        });
+
+        // Adiciona o campo imageType para o projeto principal e o type para as imagens extras
+        const projectsWithTypes = projects.map(project => {
+            const ext = path.extname(project.imageUrl).toLowerCase();
+            const imageType = ['.mp4', '.mov', '.avif', '.mkv'].includes(ext) ? 'video' : 'image';
+
+            const imagesWithTypes = project.images.map(img => {
+                const extImg = path.extname(img.url).toLowerCase();
+                let type = 'image';
+                if (['.mp4', '.mov', '.mkv', '.webm'].includes(extImg)) {
+                    type = 'video';
+                }
+                return { ...img, type };
             });
-        res.json(projects);
+
+            return {
+                ...project,
+                imageType,
+                images: imagesWithTypes
+            };
+        });
+
+        res.json(projectsWithTypes);
+
     } catch (error) {
         console.error('Erro ao buscar projetos:', error);
         res.status(500).json({ error: 'Erro ao buscar projetos' });

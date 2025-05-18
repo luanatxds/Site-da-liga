@@ -24,7 +24,17 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não suportado.'));
+    }
+  }
+});
 
 // 👉 GET /projects - Listar todos os projetos
 router.get('/', authenticate, async (req, res) => {
@@ -37,7 +47,18 @@ router.get('/', authenticate, async (req, res) => {
         year: 'desc'
       }
     });
-    res.json(projects);
+    // Mapeia cada projeto para adicionar o campo 'type' em cada imagem
+    const projectsWithTypes = projects.map(project => ({
+      ...project,
+      images: project.images.map(img => {
+        const ext = path.extname(img.url).toLowerCase();
+        const type = ['.mp4', '.mov', '.avi', '.mkv'].includes(ext) ? 'video' : 'image';
+        return { ...img, type };
+      })
+    }));
+
+    res.json(projectsWithTypes);
+
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar projetos' });
   }
@@ -59,7 +80,24 @@ router.get('/:id', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Projeto não encontrado' });
     }
 
-    res.json(project);
+    const baseURL = 'http://localhost:3000';  // Só o domínio e porta, sem '/uploads'
+
+    const projectWithTypes = {
+      ...project,
+      images: project.images.map(img => {
+        const ext = path.extname(img.url).toLowerCase();
+        const type = ['.mp4', '.mov', '.avi', '.mkv'].includes(ext) ? 'video' : 'image';
+
+        // Garante que não tenha barra duplicada ao montar a url
+        const url = img.url.startsWith('http') ? img.url : `${baseURL}${img.url}`;
+
+        return { ...img, type, url };
+      })
+    };
+
+
+    res.json(projectWithTypes);
+
   } catch (error) {
     res.status(400).json({ error: 'Erro ao buscar projeto' });
   }
@@ -158,14 +196,19 @@ router.put('/:id', authenticate, upload.fields([
       newExtraImagesUrls = req.files['extraImages'].map(file => ({
         url: `/uploads/${file.filename}`
       }));
+
+
     } else if (existingExtraImages) {
       try {
         const parsed = JSON.parse(existingExtraImages);
-        newExtraImagesUrls = parsed.map(url => ({ url }));
+        newExtraImagesUrls = parsed.map(item => ({
+          url: item.url
+        }));
       } catch (e) {
         newExtraImagesUrls = [];
       }
     }
+
 
     // Atualiza projeto
     const updatedProject = await prisma.project.update({

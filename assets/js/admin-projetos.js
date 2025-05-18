@@ -101,30 +101,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
         projects.forEach((project, index) => {
             const extraImagesHTML = project.images?.length
-                ? project.images.map(img => `<img src="${img.url}" width="40" class="me-1 rounded">`).join('')
+                ? project.images.map(media => {
+                    if (media.type === 'video') {
+                        return `<video width="80" height="45" class="me-1 rounded" muted preload="metadata" playsinline>
+                <source src="${media.url}" type="video/mp4">
+                Seu navegador não suporta vídeo.
+            </video>`;
+                    } else {
+                        return `<img src="${media.url}" width="40" class="me-1 rounded">`;
+                    }
+
+                }).join('')
                 : '—';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${project.name}</td>
-                <td>${project.type}</td>
-                <td class="text-wrap" style="max-width: 200px;"><div class="truncate-text">${project.description || '—'}</div></td>
-                <td>${project.year || '—'}</td>
-                <td><img src="${project.imageUrl}" width="60" class="rounded"></td>
-                <td>${extraImagesHTML}</td>
-                <td>
-                    <button class="btn btn-primary btn-sm me-1" onclick="editProject(${project.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject(${project.id}, '${project.name.replace(/'/g, "\\'")}')">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            `;
+            <td>${index + 1}</td>
+            <td>${project.name}</td>
+            <td>${project.type}</td>
+            <td class="text-wrap" style="max-width: 200px;"><div class="truncate-text">${project.description || '—'}</div></td>
+            <td>${project.year || '—'}</td>
+            <td><img src="${project.imageUrl}" width="60" class="rounded"></td>
+            <td>${extraImagesHTML}</td>
+            <td>
+                <button class="btn btn-primary btn-sm me-1" onclick="editProject(${project.id})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteProject(${project.id}, '${project.name.replace(/'/g, "\\'")}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
             domElements.projectList.appendChild(tr);
         });
     }
+
 
     // ==============================
     // Ações: Criar / Editar / Deletar
@@ -231,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
             domElements.formFields.year.value = project.year || '';
             const hiddenExtraImagesInput = document.getElementById('project-extra-file');
             if (hiddenExtraImagesInput) {
-            hiddenExtraImagesInput.value = JSON.stringify(project.images?.map(img => img.url) || []);
+                hiddenExtraImagesInput.value = JSON.stringify(project.images?.map(img => img.url) || []);
             }
 
             // Atualiza a URL oculta da imagem principal
